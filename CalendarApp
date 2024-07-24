@@ -1,0 +1,103 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CalendarApp {
+    private JFrame frame;
+    private JPanel calendarPanel;
+    private JLabel monthLabel;
+    private LocalDate currentDate;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new CalendarApp().createAndShowGUI());
+    }
+
+    public CalendarApp() {
+        currentDate = LocalDate.now();
+    }
+
+    private void createAndShowGUI() {
+        frame = new JFrame("Calendar");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 300);
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel headerPanel = new JPanel(new BorderLayout());
+
+        JButton priorButton = new JButton("Prior");
+        JButton nextButton = new JButton("Next");
+        priorButton.addActionListener(new PriorButtonListener());
+        nextButton.addActionListener(new NextButtonListener());
+
+        monthLabel = new JLabel("", SwingConstants.CENTER);
+        updateMonthLabel();
+
+        headerPanel.add(priorButton, BorderLayout.WEST);
+        headerPanel.add(monthLabel, BorderLayout.CENTER);
+        headerPanel.add(nextButton, BorderLayout.EAST);
+
+        calendarPanel = new JPanel(new GridLayout(0, 7));
+        updateCalendar();
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(calendarPanel, BorderLayout.CENTER);
+
+        frame.add(mainPanel);
+        frame.setVisible(true);
+    }
+
+    private void updateMonthLabel() {
+        monthLabel.setText(currentDate.getMonth().toString() + " " + currentDate.getYear());
+    }
+
+    private void updateCalendar() {
+        calendarPanel.removeAll();
+
+        LocalDate firstOfMonth = currentDate.withDayOfMonth(1);
+        int dayOfWeekValue = firstOfMonth.getDayOfWeek().getValue();
+        YearMonth yearMonth = YearMonth.from(currentDate);
+
+        LocalDate firstDayInCalendar = firstOfMonth.minusDays(dayOfWeekValue % 7);
+
+        List<LocalDate> dates = new ArrayList<>();
+        for (int i = 0; i < 42; i++) {
+            dates.add(firstDayInCalendar.plusDays(i));
+        }
+
+        for (LocalDate date : dates) {
+            JLabel label = new JLabel(String.valueOf(date.getDayOfMonth()), SwingConstants.CENTER);
+            if (date.getMonthValue() == currentDate.getMonthValue()) {
+                label.setForeground(Color.BLACK);
+            } else {
+                label.setForeground(Color.GRAY);
+            }
+            calendarPanel.add(label);
+        }
+
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private class PriorButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            currentDate = currentDate.minusMonths(1);
+            updateMonthLabel();
+            updateCalendar();
+        }
+    }
+
+    private class NextButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            currentDate = currentDate.plusMonths(1);
+            updateMonthLabel();
+            updateCalendar();
+        }
+    }
+}
